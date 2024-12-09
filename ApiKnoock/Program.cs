@@ -28,8 +28,10 @@ builder.Services
 builder.Services.AddDbContext<KnoockContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("KnoockDatabase")));
 
-builder.Services.AddSignalR()
-    .AddAzureSignalR(builder.Configuration["SignalR:ConnectionStringSignalR"]);
+//builder.Services.AddSignalR();
+//.AddAzureSignalR(builder.Configuration["SignalR:ConnectionStringSignalR"]);
+
+builder.Services.AddSignalR(options => options.EnableDetailedErrors = true);
 
 
 //Adiciona serviço de Jwt Bearer (forma de autenticação)
@@ -146,11 +148,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder
-            .WithOrigins("http://localhost:5500") 
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials(); 
+        builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
     });
 });
 
@@ -190,11 +190,11 @@ app.UseRouting();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHub<EntregasHub>("/EntregasHub");
+    endpoints.MapHub<EntregasHub>("/entregashub");
     endpoints.MapControllers();
 });
 
-app.UseAuthorization();
+//app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

@@ -162,7 +162,7 @@ namespace ApiKnoock.Repository
         public async Task<List<Entrega>> GetEntregasPendentesAsync()
         {
             return await _context.Entregas
-                .Where(e => e.Status == "Pendente") 
+                .Where(e => e.Status == "Pendente")
                 .ToListAsync();
         }
 
@@ -190,6 +190,10 @@ namespace ApiKnoock.Repository
         //        await _context.SaveChangesAsync();
         //    }
         //}
+
+
+
+
 
 
 

@@ -1,90 +1,108 @@
-using ApiKnoock.Domains;
-using ApiKnoock.Interface;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Azure.Functions.Worker;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using ApiKnoock.Interface;
+using Microsoft.AspNetCore.SignalR;
+using ApiKnoock.Domains;
+using Microsoft.Azure.Functions.Worker;
 
-public class Monitoramento
+namespace ApiKnoock.Functions
 {
-    //Fazer o Agente Monitor
-    //Fazer o Hub para aviso pro client
-    //Fazer logica de regras de negocio
-    //Configurar monitoramento 
-
-
-
-
-    private readonly IEntregaRepository _entregaRepository;
-    private readonly IAfiliadosRepository _afiliadosRepository;
-    private readonly IHubContext<EntregasHub> _hubContext;
-
-    public Monitoramento(IEntregaRepository entregaRepository, IHubContext<EntregasHub> hubContext, IAfiliadosRepository afiliados)
+    public class Monitoramento
     {
-        _entregaRepository = entregaRepository;
-        _hubContext = hubContext;
-        _afiliadosRepository = afiliados;
-    }
+        private readonly IAfiliadosRepository _afiliadosRepository;
+        private readonly IEntregaRepository _entregaRepository;
+        private readonly IHubContext<EntregasHub> _hubContext;
 
-    [FunctionName("MonitorarAfiliados")]
-    public async Task Run([TimerTrigger("*/5 * * * * *")] TimerInfo myTimer, ILogger log)
-    {
-        log.LogInformation($"Monitorando entregas pendentes às {DateTime.Now}");
-
-        // Verifica entregas pendentes
-        var entregasPendentes = await _entregaRepository.GetEntregasPendentesAsync();
-        if (!entregasPendentes.Any())
+        public Monitoramento(
+            IAfiliadosRepository afiliadosRepository,
+            IEntregaRepository entregaRepository,
+            IHubContext<EntregasHub> hubContext)
         {
-            log.LogInformation("Nenhuma entrega pendente encontrada.");
-            return;
+            _afiliadosRepository = afiliadosRepository;
+            _entregaRepository = entregaRepository;
+            _hubContext = hubContext;
         }
 
-        // Obtém afiliados online
-        var afiliadosOnline = await _afiliadosRepository.GetAfiliadosOnlineAsync();
-        if (!afiliadosOnline.Any())
+        [FunctionName("MonitorarFila")]
+        public async Task Run([TimerTrigger("*/5 * * * * *")] TimerInfo myTimer, ILogger log)
         {
-            log.LogInformation("Nenhum afiliado online disponível.");
-            return;
+            log.LogInformation($"Fila monitorada em: {DateTime.Now}");
+
+            // Busca entregas pendentes
+            var entregasPendentes = await _entregaRepository.GetEntregasPendentesAsync();
+            if (!entregasPendentes.Any())
+            {
+                log.LogInformation("Nenhuma entrega pendente.");
+                return;
+            }
+
+            // Busca afiliados online
+            var afiliadosOnline = await _afiliadosRepository.GetAfiliadosOnlineAsync();
+            if (!afiliadosOnline.Any())
+            {
+                log.LogInformation("Nenhum afiliado online disponível.");
+                return;
+            }
+
+            // Atualiza a fila com afiliados online
+            foreach (var afiliado in afiliadosOnline)
+            {
+                await _afiliadosRepository.AdicionarAfiliadoNaFilaAsync(afiliado.Id);
+            }
+
+            // Processa cada entrega pendente
+            foreach (var entrega in entregasPendentes)
+            {
+                await ProcessarEntrega(entrega);
+            }
         }
 
-        // Adiciona afiliados online à fila
-        foreach (var afiliado in afiliadosOnline)
+        private async Task ProcessarEntrega(Entrega entrega)
         {
-            await AdicionarAfiliadoNaFilaAsync(afiliado.Id);
+            Afiliado? afiliadoAtual;
+
+            // Tenta processar até que alguém aceite
+            while ((afiliadoAtual = await _afiliadosRepository.ObterProximoAfiliadoDaFilaAsync()) != null)
+            {
+                // Envia notificação para o afiliado via SignalR
+                await _hubContext.Clients.User(afiliadoAtual.TipoUsuarioId.ToString())
+                    .SendAsync("NotificarEntrega", entrega.Id);
+
+                // Aguarda resposta do afiliado (simulado aqui com um delay de 10s)
+                var aceitou = await AguardaRespostaAfiliado(entrega.Id, afiliadoAtual.Id);
+
+                if (aceitou)
+                {
+                    // Atualiza entrega e afiliado
+                    await _entregaRepository.AtualizarStatusEntregaAsync(entrega.Id, "EmTransito");
+                    _afiliadosRepository.AtualizarStatusAfiliado(afiliadoAtual.Id, true);
+
+                    // Move afiliado para o final da fila
+                    await _afiliadosRepository.AdicionarAfiliadoNaFilaAsync(afiliadoAtual.Id);
+                    break;
+                }
+                else
+                {
+                    // Afiliado recusou; tenta o próximo
+                    continue;
+                }
+            }
         }
 
-        // Processa a fila
-        await ProcessarFilaAsync(entregasPendentes.FirstOrDefault(), log);
-    }
-
-    private async Task ProcessarFilaAsync(Entrega entrega, ILogger log)
-    {
-        var proximoAfiliado = await ObterProximoAfiliadoAsync();
-        if (proximoAfiliado == null)
+        private async Task<bool> AguardaRespostaAfiliado(Guid entregaId, Guid afiliadoId)
         {
-            log.LogWarning("Nenhum afiliado na fila.");
-            return;
+            // Simula um tempo de espera para a resposta (10 segundos)
+            await Task.Delay(10000);
+
+            // Aqui, deveria buscar a resposta no SignalR Hub (ou outro mecanismo de callback)
+            // Exemplo: 
+            // var resposta = await _hubContext.Clients.User(afiliadoId.ToString()).SendAsync("ObterResposta");
+            // Simulação:
+            var respostaSimulada = true; // Substituir por lógica real
+            return respostaSimulada;
         }
-
-        // Envia notificação para o afiliado
-        await _hubContext.Clients.User(proximoAfiliado.Id.ToString())
-            .SendAsync("ReceberMensagem", $"Você deseja aceitar a entrega {entrega.Id}?");
-
-        // Atualiza o status e remove da fila
-        await _entregaRepository.AtualizarStatusEntregaAsync(entrega.Id, "Em Curso");
-        await _entregaRepository.RemoverAfiliadoDaFilaAsync(proximoAfiliado.Id);
-
-        log.LogInformation($"Afiliado {proximoAfiliado.Id} aceitou a entrega {entrega.Id}");
-    }
-
-    private async Task AdicionarAfiliadoNaFilaAsync(Guid afiliadoId)
-    {
-        // Implementar a lógica para adicionar afiliado na fila
-    }
-
-    private async Task<Afiliado?> ObterProximoAfiliadoAsync()
-    {
-        var afiliadosOnline = await _afiliadosRepository.GetAfiliadosOnlineAsync();
-        return afiliadosOnline.FirstOrDefault();
     }
 }

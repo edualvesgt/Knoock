@@ -5,10 +5,12 @@ VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiKnoock", "ApiKnoock.csproj", "{A26690B4-D448-47C0-9000-1C34113D268F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuncaoTimeTrigger", "..\FuncaoTimeTrigger\FuncaoTimeTrigger.csproj", "{5555AA80-DBCE-4AC1-9454-D33D317F89BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FuncaoTimeTrigger", "..\FuncaoTimeTrigger\FuncaoTimeTrigger.csproj", "{5555AA80-DBCE-4AC1-9454-D33D317F89BF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A26690B4-D448-47C0-9000-1C34113D268F} = {A26690B4-D448-47C0-9000-1C34113D268F}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TesteSignalR", "..\TesteSignalR\TesteSignalR.csproj", "{3ADF7F6C-2387-4079-8B05-9C366FBD4F43}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +26,10 @@ Global
 		{5555AA80-DBCE-4AC1-9454-D33D317F89BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5555AA80-DBCE-4AC1-9454-D33D317F89BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5555AA80-DBCE-4AC1-9454-D33D317F89BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ADF7F6C-2387-4079-8B05-9C366FBD4F43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ADF7F6C-2387-4079-8B05-9C366FBD4F43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ADF7F6C-2387-4079-8B05-9C366FBD4F43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ADF7F6C-2387-4079-8B05-9C366FBD4F43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

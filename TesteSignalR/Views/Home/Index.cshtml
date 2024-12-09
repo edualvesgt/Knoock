@@ -18,7 +18,7 @@
     </div>
 
     <script>
-        const hubUrl = "/entregashub";
+        const hubUrl = "http://localhost:5153/entregashub";
         const hubConnection = new signalR.HubConnectionBuilder()
             .withUrl(hubUrl)
             .configureLogging(signalR.LogLevel.Debug)
