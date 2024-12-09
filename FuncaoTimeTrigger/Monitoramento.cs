@@ -94,15 +94,22 @@ namespace ApiKnoock.Functions
 
         private async Task<bool> AguardaRespostaAfiliado(Guid entregaId, Guid afiliadoId)
         {
-            // Simula um tempo de espera para a resposta (10 segundos)
-            await Task.Delay(10000);
+            var timeout = TimeSpan.FromSeconds(10);
+            var startTime = DateTime.UtcNow;
 
-            // Aqui, deveria buscar a resposta no SignalR Hub (ou outro mecanismo de callback)
-            // Exemplo: 
-            // var resposta = await _hubContext.Clients.User(afiliadoId.ToString()).SendAsync("ObterResposta");
-            // Simulação:
-            var respostaSimulada = true; // Substituir por lógica real
-            return respostaSimulada;
+            while (DateTime.UtcNow - startTime < timeout)
+            {
+                var resposta = EntregasHub.ObterRespostaEntrega(entregaId);
+                if (resposta.HasValue)
+                {
+                    // Limpa a resposta para evitar reuso
+                    EntregasHub.LimparRespostaEntrega(entregaId);
+                    return resposta.Value;
+                }
+                await Task.Delay(1000);
+            }
+
+            return false;
         }
     }
 }

@@ -10,66 +10,77 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Microsoft.Win32;
-using Newtonsoft.Json;
 using System.Reflection;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adicione os serviços necessários
+// Adicionar serviços necessários
 builder.Services
     .AddControllers()
-        .AddNewtonsoftJson(options =>
-        {
-            options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-        });
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+        options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+    });
 
 builder.Services.AddDbContext<KnoockContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("KnoockDatabase")));
 
-//builder.Services.AddSignalR();
-//.AddAzureSignalR(builder.Configuration["SignalR:ConnectionStringSignalR"]);
-
+// Adicionar SignalR com suporte detalhado
 builder.Services.AddSignalR(options => options.EnableDetailedErrors = true);
 
-
-//Adiciona serviço de Jwt Bearer (forma de autenticação)
+// Configuração JWT Bearer
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultChallengeScheme = "JwtBearer";
     options.DefaultAuthenticateScheme = "JwtBearer";
+    options.DefaultChallengeScheme = "JwtBearer";
 })
-
 .AddJwtBearer("JwtBearer", options =>
 {
+    options.Authority = "https://exemple.com";
+    options.Audience = "api";
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        //valida quem está solicitando
         ValidateIssuer = true,
-
-        //valida quem está recebendo
         ValidateAudience = true,
-
-        //define se o tempo de expiração será validado
         ValidateLifetime = true,
-
-        //forma de criptografia e valida a chave de autenticação
-        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("knoock-webapi-chave-symmetricsecuritykey")),
-
-        //valida o tempo de expiração do token
-        ClockSkew = TimeSpan.FromMinutes(30),
-
-        //nome do issuer (de onde está vindo)
+        IssuerSigningKey = new SymmetricSecurityKey(
+            System.Text.Encoding.UTF8.GetBytes("knoock-webapi-chave-symmetricsecuritykey")),
         ValidIssuer = "knoock-WebAPI",
-
-        //nome do audience (para onde está indo)
         ValidAudience = "knoock-WebAPI"
+    };
+
+    // Permitir envio do token ao SignalR
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/entregashub"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"Erro de autenticação: {context.Exception.Message}");
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine($"Token validado para o usuário: {context.Principal.Identity.Name}");
+            return Task.CompletedTask;
+        }
     };
 });
 
-
-
+// Adicionar Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -78,28 +89,17 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Title = "Knoock API",
         Description = "API do KnoockApp",
-        //TermsOfService = new Uri("https://example.com/terms"),
         Contact = new OpenApiContact
         {
             Name = "Grupo Knoock",
-            Email = string.Empty,
-            //Url = new Uri("https://twitter.com/spboyer"),
-        },
-        License = new OpenApiLicense
-        {
-            //Name = "Use under LICX",
-            //Url = new Uri("https://example.com/license"),
+            Email = string.Empty
         }
     });
 
-    // Set the comments path for the Swagger JSON and UI.
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
 
-
-
-    //Usando a autenticaçao no Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
         Name = "Authorization",
@@ -107,8 +107,9 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Value: Bearer TokenJWT ",
+        Description = "Value: Bearer TokenJWT"
     });
+
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -125,55 +126,37 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
-//ADICIONANDO NO ESCOPO DO PROJETO
-
-builder.Services.AddScoped<ISmsRepository, SmsRepository>(); // Repositório de SMS
-builder.Services.AddScoped<SmsService>(); // Serviço de envio de SMS
-// Adicionar serviços SignalR
-builder.Services.AddSignalR();
+// Adicionar repositórios e serviços ao escopo do projeto
+builder.Services.AddScoped<ISmsRepository, SmsRepository>();
+builder.Services.AddScoped<SmsService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(nameof(EmailSettings)));
-// Registrar o serviço de envio de e-mails
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<EmailSendingService>();
 builder.Services.AddScoped<IAfiliadosRepository, AfiliadosRepository>();
-
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IEntregaRepository, EntregaRepository>();
 builder.Services.AddScoped<IVeiculoRepository, VeiculoRepository>();
 
-
-// Adicionar política CORS no serviço
+// Configurar CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
+        builder.WithOrigins("http://localhost:5109")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
     });
 });
 
-
-
 var app = builder.Build();
 
-//Alterar dados do Swagger para a seguinte configuração
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
 
-app.UseSwagger(options =>
-{
-    options.SerializeAsV2 = true;
-});
-
-app.UseSwaggerUI();
-
-
-//Importante para o deploy
-//Para atender à interface do usuário do Swagger na raiz do aplicativo
+app.UseSwagger(options => options.SerializeAsV2 = true);
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
@@ -181,20 +164,19 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseCors("CorsPolicy");
-
-
 app.UseHttpsRedirection();
+
+// Garantir que o middleware de autenticação e autorização está configurado
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseRouting();
 
+// Configuração de endpoints para SignalR e controllers
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<EntregasHub>("/entregashub");
     endpoints.MapControllers();
 });
-
-//app.UseAuthorization();
-app.MapControllers();
 
 app.Run();

@@ -9,23 +9,36 @@
 <body>
     <h1>Teste do SignalR - Gerenciamento de Entregas</h1>
     <div>
-        <button id="connect">Conectar ao SignalR</button>
-        <button id="notificar">Notificar Afiliado</button>
-        <button id="aceitar">Simular Aceitação</button>
-        <button id="recusar">Simular Recusa</button>
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="username">Usuário:</label>
+            <input type="text" id="username" required>
+            <label for="password">Senha:</label>
+            <input type="password" id="password" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <p>Status do login: <span id="loginStatus">Não autenticado</span></p>
+    </div>
+    <hr>
+    <div>
+        <button id="connect" disabled>Conectar ao SignalR</button>
+        <button id="notificar" disabled>Notificar Afiliado</button>
+        <button id="aceitar" disabled>Simular Aceitação</button>
+        <button id="recusar" disabled>Simular Recusa</button>
         <p>Status: <span id="status">Desconectado</span></p>
         <div id="messages"></div>
     </div>
 
     <script>
+        let token = null; // Token para autenticação
         const hubUrl = "http://localhost:5153/entregashub";
-        const hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl(hubUrl)
-            .configureLogging(signalR.LogLevel.Debug)
-            .build();
-
+        let hubConnection = null;
 
         // Elementos HTML
+        const loginForm = document.getElementById("loginForm");
+        const usernameInput = document.getElementById("username");
+        const passwordInput = document.getElementById("password");
+        const loginStatus = document.getElementById("loginStatus");
         const connectButton = document.getElementById("connect");
         const notificarButton = document.getElementById("notificar");
         const aceitarButton = document.getElementById("aceitar");
@@ -33,16 +46,57 @@
         const statusText = document.getElementById("status");
         const messagesDiv = document.getElementById("messages");
 
-        // Conectar ao Hub
-        document.getElementById("connect").addEventListener("click", async () => {
+        // Método para login
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = usernameInput.value;
+            const senha = passwordInput.value;
+
             try {
+                const response = await fetch("http://localhost:5153/api/Login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Login falhou.");
+                }
+
+                const data = await response.json();
+                token = data.token; // Recebe o token JWT do backend
+                loginStatus.textContent = "Autenticado!";
+                connectButton.disabled = false;
+                notificarButton.disabled = false;
+                aceitarButton.disabled = false;
+                recusarButton.disabled = false;
+
+                console.log("Login bem-sucedido! Token:", token);
+            } catch (err) {
+                console.error("Erro no login:", err);
+                loginStatus.textContent = "Erro no login.";
+            }
+        });
+
+        // Conectar ao Hub com autenticação
+        connectButton.addEventListener("click", async () => {
+            try {
+                hubConnection = new signalR.HubConnectionBuilder()
+                    .withUrl(hubUrl, {
+                        accessTokenFactory: () => token // Adiciona o token ao header Authorization
+                    })
+                    .configureLogging(signalR.LogLevel.Debug)
+                    .build();
+
                 console.log("Tentando conectar ao SignalR...");
                 await hubConnection.start();
-                document.getElementById("status").textContent = "Conectado!";
+                statusText.textContent = "Conectado!";
                 console.log("Conexão estabelecida com o SignalR!");
             } catch (err) {
                 console.error("Erro ao conectar ao SignalR:", err);
-                document.getElementById("status").textContent = "Erro ao conectar.";
+                statusText.textContent = "Erro ao conectar.";
             }
         });
 
@@ -50,7 +104,7 @@
         notificarButton.addEventListener("click", async () => {
             try {
                 const afiliadoId = "1030f449-e1d8-464b-8f3e-315076a97fce";
-                const entregaId = "3228f2ea-2be6-45fe-ab7e-0ea328ebbbe1";
+                const entregaId = "f111c63f-6cd1-40c4-a368-108947647583";
                 await hubConnection.invoke("NotificarEntrega", afiliadoId, entregaId);
                 console.log(`Notificação enviada para o afiliado ${afiliadoId} sobre a entrega ${entregaId}`);
             } catch (err) {
@@ -61,7 +115,13 @@
         // Simular aceitação de entrega
         aceitarButton.addEventListener("click", async () => {
             try {
-                const entregaId = "3228f2ea-2be6-45fe-ab7e-0ea328ebbbe1";
+                hubConnection = new signalR.HubConnectionBuilder()
+                    .withUrl(hubUrl, {
+                        accessTokenFactory: () => token // Adiciona o token ao header Authorization
+                    })
+                    .configureLogging(signalR.LogLevel.Debug)
+                    .build();
+                const entregaId = "f111c63f-6cd1-40c4-a368-108947647583";
                 await hubConnection.invoke("ResponderEntrega", entregaId, true);
                 console.log(`Simulação: Aceitação da entrega ${entregaId}`);
             } catch (err) {
@@ -72,7 +132,7 @@
         // Simular recusa de entrega
         recusarButton.addEventListener("click", async () => {
             try {
-                const entregaId = "3228f2ea-2be6-45fe-ab7e-0ea328ebbbe1";
+                const entregaId = "f111c63f-6cd1-40c4-a368-108947647583";
                 await hubConnection.invoke("ResponderEntrega", entregaId, false);
                 console.log(`Simulação: Recusa da entrega ${entregaId}`);
             } catch (err) {
@@ -81,7 +141,7 @@
         });
 
         // Receber mensagem de notificação
-        hubConnection.on("ReceberEntrega", (entregaId) => {
+        hubConnection?.on("ReceberEntrega", (entregaId) => {
             const messageElement = document.createElement("p");
             messageElement.textContent = `Nova entrega recebida! ID: ${entregaId}`;
             messagesDiv.appendChild(messageElement);
@@ -89,7 +149,7 @@
         });
 
         // Receber confirmação de aceitação
-        hubConnection.on("EntregaAceita", (afiliadoId, entregaId) => {
+        hubConnection?.on("EntregaAceita", (afiliadoId, entregaId) => {
             const messageElement = document.createElement("p");
             messageElement.textContent = `Entrega ${entregaId} aceita pelo afiliado ${afiliadoId}`;
             messagesDiv.appendChild(messageElement);
@@ -97,7 +157,7 @@
         });
 
         // Receber notificação de recusa
-        hubConnection.on("EntregaRecusada", (afiliadoId, entregaId) => {
+        hubConnection?.on("EntregaRecusada", (afiliadoId, entregaId) => {
             const messageElement = document.createElement("p");
             messageElement.textContent = `Entrega ${entregaId} recusada pelo afiliado ${afiliadoId}`;
             messagesDiv.appendChild(messageElement);

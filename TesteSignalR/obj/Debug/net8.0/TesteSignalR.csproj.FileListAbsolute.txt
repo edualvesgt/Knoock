@@ -29,3 +29,34 @@ C:\Users\46291995867\Desktop\Knoock\TesteSignalR\obj\Debug\net8.0\refint\TesteSi
 C:\Users\46291995867\Desktop\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.pdb
 C:\Users\46291995867\Desktop\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.genruntimeconfig.cache
 C:\Users\46291995867\Desktop\Knoock\TesteSignalR\obj\Debug\net8.0\ref\TesteSignalR.dll
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\bin\Debug\net8.0\appsettings.Development.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\bin\Debug\net8.0\appsettings.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\bin\Debug\net8.0\TesteSignalR.staticwebassets.runtime.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\bin\Debug\net8.0\TesteSignalR.exe
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\bin\Debug\net8.0\TesteSignalR.deps.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\bin\Debug\net8.0\TesteSignalR.runtimeconfig.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\bin\Debug\net8.0\TesteSignalR.dll
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\bin\Debug\net8.0\TesteSignalR.pdb
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.AssemblyInfoInputs.cache
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.AssemblyInfo.cs
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.csproj.CoreCompileInputs.cache
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.RazorAssemblyInfo.cache
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.RazorAssemblyInfo.cs
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.sourcelink.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\staticwebassets\msbuild.TesteSignalR.Microsoft.AspNetCore.StaticWebAssets.props
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\staticwebassets\msbuild.build.TesteSignalR.props
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.TesteSignalR.props
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.TesteSignalR.props
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\staticwebassets.pack.json
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\scopedcss\bundle\TesteSignalR.styles.css
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\scopedcss\projectbundle\TesteSignalR.bundle.scp.css
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.dll
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\refint\TesteSignalR.dll
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.pdb
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\TesteSignalR.genruntimeconfig.cache
+C:\Users\dudua\OneDrive\Área de Trabalho\Knoock\TesteSignalR\obj\Debug\net8.0\ref\TesteSignalR.dll
